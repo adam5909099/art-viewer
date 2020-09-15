@@ -1,7 +1,19 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
 import css from '@styled-system/css';
-import { Modal, Form, Input, Button, Row, Col, DatePicker } from 'antd';
+import {
+  Modal,
+  Form,
+  Input,
+  Button,
+  Row,
+  Col,
+  DatePicker,
+  Upload,
+  message,
+} from 'antd';
+import { useState, useEffect } from 'react';
+import { PlusOutlined } from '@ant-design/icons';
 
 export interface Painting {
   name: string;
@@ -10,7 +22,7 @@ export interface Painting {
   width: number;
   height: number;
   notes?: string;
-  file?: File;
+  file?: File | string;
 }
 
 interface Props {
@@ -21,6 +33,31 @@ interface Props {
 
 const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
   const [form] = Form.useForm();
+  const [file, setFile] = useState<File>(null);
+  const [previewSrc, setPreviewSrc] = useState<string>(null);
+
+  const beforeUpload = (file) => {
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      message.error('You can only upload JPG/PNG file!');
+      return false;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => setPreviewSrc(reader.result as string);
+    reader.readAsDataURL(file);
+
+    setFile(file);
+
+    return false;
+  };
+
+  useEffect(() => {
+    if (!visible) return;
+
+    setFile(null);
+    setPreviewSrc(null);
+    form.resetFields();
+  }, [visible]);
 
   return (
     <Modal
@@ -43,11 +80,40 @@ const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
         id="addPaintingForm"
         form={form}
         layout="vertical"
-        onFinish={(values) => onOk(values)}
+        onFinish={(values) => {
+          if (!file) {
+            message.error('Please select image file!');
+            return;
+          }
+          onOk({ file: previewSrc, ...values });
+        }}
       >
         <Row gutter={32}>
-          <Col span={8}></Col>
-          <Col span={16}>
+          <Col>
+            <Upload
+              name="file"
+              listType="picture-card"
+              className="avatar-uploader"
+              showUploadList={false}
+              action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+              beforeUpload={beforeUpload}
+              css={css({ '.ant-upload': { width: 240, height: 240 } })}
+            >
+              {previewSrc ? (
+                <img
+                  src={previewSrc}
+                  alt="avatar"
+                  css={css({ width: '100%', p: 1 })}
+                />
+              ) : (
+                <div>
+                  <PlusOutlined />
+                  <div css={css({ mt: '8px' })}>Upload</div>
+                </div>
+              )}
+            </Upload>
+          </Col>
+          <Col css={css({ flex: 1 })}>
             <Form.Item
               name="name"
               label="Serie"
@@ -60,10 +126,21 @@ const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
             >
               <Input />
             </Form.Item>
-            <Form.Item name="author" label="Author">
-              <Input />
-            </Form.Item>
             <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="author"
+                  label="Author"
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Required',
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
               <Col span={12}>
                 <Form.Item
                   name="creationDate"
@@ -78,10 +155,26 @@ const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
                   <DatePicker css={css({ width: '100%' })} />
                 </Form.Item>
               </Col>
+            </Row>
+            <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  name="size"
-                  label="Size"
+                  name="width"
+                  label="Width"
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Required',
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="height"
+                  label="Height"
                   rules={[
                     {
                       required: true,

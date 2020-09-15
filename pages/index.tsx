@@ -10,7 +10,7 @@ import AddSerieModal from '../components/AddSerieModal';
 import produce from 'immer';
 import { Typography } from 'antd';
 import PaintingCard from '../components/PaintingCard';
-import AddPaitingModal, { Painting } from '../components/AddPaintingModal';
+import AddPaintingModal, { Painting } from '../components/AddPaintingModal';
 import AddPaintingCard from '../components/AddPaintingCard';
 
 const { Header, Content, Footer } = Layout;
@@ -21,7 +21,7 @@ const Home: React.FC = () => {
   const [series, setSeries] = useState(['Abstracts', 'Kandinsky', 'Serie3']);
   const [currentSerie, setCurrentSerie] = useState<string>(all);
   const [addSerieVisible, setAddSerieVisible] = useState(false);
-  const [paintings] = useState<Painting[]>([
+  const [paintings, setPaintings] = useState<Painting[]>([
     {
       name: 'Composition VII',
       author: 'Wassily Kandinsky',
@@ -41,7 +41,14 @@ const Home: React.FC = () => {
     setAddSerieVisible(false);
   };
 
-  const handlePaitingOk = () => null;
+  const handlePaitingOk = (painting) => {
+    setPaintings(
+      produce((draft) => {
+        draft.push(painting);
+      })
+    );
+    setAddPaintingVisible(false);
+  };
 
   return (
     <>
@@ -117,11 +124,11 @@ const Home: React.FC = () => {
         onOk={handleAddSerieOk}
         onCancel={() => setAddSerieVisible(false)}
       />
-      <AddPaitingModal
+      <AddPaintingModal
         visible={addPaintingVisible}
         onOk={handlePaitingOk}
         onCancel={() => setAddPaintingVisible(false)}
-      ></AddPaitingModal>
+      ></AddPaintingModal>
     </>
   );
 };

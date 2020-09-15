@@ -1,4 +1,5 @@
 import { Modal, Form, Input, Button } from 'antd';
+import { useEffect } from 'react';
 
 interface Props {
   visible: boolean;
@@ -8,6 +9,12 @@ interface Props {
 
 const AddSerieModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (!visible) return;
+
+    form.resetFields();
+  }, [visible]);
 
   return (
     <Modal

@@ -14,16 +14,7 @@ import {
 } from 'antd';
 import { useState, useEffect } from 'react';
 import { PlusOutlined } from '@ant-design/icons';
-
-export interface Painting {
-  name: string;
-  author?: string;
-  creationDate: Date;
-  width: number;
-  height: number;
-  notes?: string;
-  file?: File | string;
-}
+import { Painting } from '../../interfaces/paintings';
 
 interface Props {
   visible: boolean;
@@ -31,8 +22,8 @@ interface Props {
   onCancel: () => void;
 }
 
-const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
-  const [form] = Form.useForm();
+const AddPaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
+  const [form] = Form.useForm<Painting>();
   const [file, setFile] = useState<File>(null);
   const [previewSrc, setPreviewSrc] = useState<string>(null);
 
@@ -81,11 +72,14 @@ const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
         form={form}
         layout="vertical"
         onFinish={(values) => {
-          if (!file) {
-            message.error('Please select image file!');
-            return;
-          }
-          onOk({ file: previewSrc, ...values });
+          // if (!file) {
+          //   message.error('Please select image file!');
+          //   return;
+          // }
+          onOk({
+            ...values,
+            filePath: `https://fakeimg.pl/${values.sizeWidth}x${values.sizeHeight}`,
+          });
         }}
       >
         <Row gutter={32}>
@@ -116,7 +110,7 @@ const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
           <Col css={css({ flex: 1 })}>
             <Form.Item
               name="name"
-              label="Serie"
+              label="Name"
               rules={[
                 {
                   required: true,
@@ -159,7 +153,7 @@ const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  name="width"
+                  name="sizeHeight"
                   label="Width"
                   rules={[
                     {
@@ -173,7 +167,7 @@ const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
               </Col>
               <Col span={12}>
                 <Form.Item
-                  name="height"
+                  name="sizeWidth"
                   label="Height"
                   rules={[
                     {
@@ -196,4 +190,4 @@ const AddPaitingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
   );
 };
 
-export default AddPaitingModal;
+export default AddPaintingModal;

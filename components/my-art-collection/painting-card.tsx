@@ -4,25 +4,26 @@ import css from '@styled-system/css';
 import { Card } from 'antd';
 import { EditOutlined, DeleteFilled } from '@ant-design/icons';
 import { Typography } from 'antd';
-import { Painting } from './AddPaintingModal';
 import moment from 'moment';
+import { Painting } from '../../interfaces/paintings';
 
 const { Title, Text } = Typography;
 
 interface Props {
   painting: Painting;
+  onDeleteClick: () => void;
 }
 
-const PaintingCard: React.FC<Props> = ({ painting }) => {
+const PaintingCard: React.FC<Props> = ({ painting, onDeleteClick }) => {
   return (
     <Card
       cover={
-        <img
-          alt="example"
-          src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"
-        />
+        <img alt="example" src={painting.filePath} css={css({ height: 200 })} />
       }
-      actions={[<EditOutlined key="edit" />, <DeleteFilled key="setting" />]}
+      actions={[
+        <EditOutlined key="edit" />,
+        <DeleteFilled key="delete" onClick={onDeleteClick} />,
+      ]}
       css={css({ '.ant-card-body': { p: 2 } })}
     >
       <div
@@ -41,7 +42,7 @@ const PaintingCard: React.FC<Props> = ({ painting }) => {
           </Text>
         </div>
         <Text css={css({ color: 'gray' })}>
-          {painting.width} x {painting.height}
+          {painting.sizeWidth} x {painting.sizeHeight}
         </Text>
       </div>
     </Card>

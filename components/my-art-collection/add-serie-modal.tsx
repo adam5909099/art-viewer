@@ -1,9 +1,10 @@
 import { Modal, Form, Input, Button } from 'antd';
 import { useEffect } from 'react';
+import { Serie } from '../../interfaces/serie';
 
 interface Props {
   visible: boolean;
-  onOk: (serie: string) => void;
+  onOk: (serie: Serie) => void;
   onCancel: () => void;
 }
 
@@ -36,11 +37,11 @@ const AddSerieModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
         id="addSerieForm"
         form={form}
         layout="vertical"
-        onFinish={({ serie }) => onOk(serie)}
+        onFinish={(values) => onOk(values)}
       >
         <Form.Item
-          name="serie"
-          label="Serie"
+          name="name"
+          label="Name"
           rules={[
             {
               required: true,

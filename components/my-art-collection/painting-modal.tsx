@@ -1,6 +1,3 @@
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import css from '@styled-system/css';
 import {
   Modal,
   Form,
@@ -13,8 +10,9 @@ import {
   message,
 } from 'antd';
 import { useState, useEffect } from 'react';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import { Painting } from '../../interfaces/paintings';
+import { baseURL } from '../../utils/request';
 
 interface Props {
   visible: boolean;
@@ -22,10 +20,10 @@ interface Props {
   onCancel: () => void;
 }
 
-const AddPaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
+const PaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
   const [form] = Form.useForm<Painting>();
-  const [file, setFile] = useState<File>(null);
-  const [previewSrc, setPreviewSrc] = useState<string>(null);
+  const [filePath, setFilePath] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const beforeUpload = (file) => {
     if (!['image/jpeg', 'image/png'].includes(file.type)) {
@@ -33,81 +31,100 @@ const AddPaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
       return false;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => setPreviewSrc(reader.result as string);
-    reader.readAsDataURL(file);
+    return true;
+  };
 
-    setFile(file);
+  const handleChange = (info) => {
+    if (info.file.status === 'uploading') {
+      setLoading(true);
+    } else if (info.file.status === 'done') {
+      setLoading(false);
+      setFilePath(info.file.response.filePath);
 
-    return false;
+      const img = new Image();
+      img.onload = function () {
+        form.setFieldsValue({
+          ...form.getFieldsValue(),
+          sizeWidth: img.width,
+          sizeHeight: img.height,
+        });
+      };
+      img.src = info.file.response.filePath;
+    }
   };
 
   useEffect(() => {
     if (!visible) return;
-
-    setFile(null);
-    setPreviewSrc(null);
+    setLoading(false);
+    setFilePath('');
     form.resetFields();
   }, [visible]);
 
   return (
     <Modal
-      title="Add New Paiting"
+      title="Add New Painting"
       visible={visible}
       onCancel={onCancel}
       width={800}
-      footer={[
+      footer={
         <Button
-          form="addPaintingForm"
           type="primary"
-          key="submit"
-          htmlType="submit"
+          onClick={() => {
+            form.submit();
+          }}
         >
           Done
-        </Button>,
-      ]}
+        </Button>
+      }
     >
       <Form
-        id="addPaintingForm"
         form={form}
         layout="vertical"
         onFinish={(values) => {
-          // if (!file) {
-          //   message.error('Please select image file!');
-          //   return;
-          // }
-          onOk({
-            ...values,
-            filePath: `https://fakeimg.pl/${values.sizeWidth}x${values.sizeHeight}`,
-          });
+          if (!filePath) {
+            message.error('Please select image file!');
+            return;
+          }
+
+          onOk({ ...values, filePath });
         }}
       >
         <Row gutter={32}>
           <Col>
             <Upload
-              name="file"
+              name="upload"
               listType="picture-card"
               className="avatar-uploader"
               showUploadList={false}
-              action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+              action={`${baseURL}/upload`}
               beforeUpload={beforeUpload}
-              css={css({ '.ant-upload': { width: 240, height: 240 } })}
+              onChange={handleChange}
+              css={`
+                .ant-upload {
+                  width: 240px;
+                  height: 240px;
+                }
+              `}
             >
-              {previewSrc ? (
+              {filePath ? (
                 <img
-                  src={previewSrc}
+                  src={filePath}
                   alt="avatar"
-                  css={css({ width: '100%', p: 1 })}
+                  css="width: 100%; height: 100%;"
                 />
               ) : (
                 <div>
-                  <PlusOutlined />
-                  <div css={css({ mt: '8px' })}>Upload</div>
+                  {loading ? (
+                    <LoadingOutlined css="font-size: 24px;" />
+                  ) : (
+                    <PlusOutlined css="font-size: 24px;" />
+                  )}
+                  <div css="margin-top: 8px;">Upload</div>
                 </div>
               )}
             </Upload>
           </Col>
-          <Col css={css({ flex: 1 })}>
+          <Col css="flex: 1;">
             <Form.Item
               name="name"
               label="Name"
@@ -146,7 +163,7 @@ const AddPaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
                     },
                   ]}
                 >
-                  <DatePicker css={css({ width: '100%' })} />
+                  <DatePicker css="width: 100%;" />
                 </Form.Item>
               </Col>
             </Row>
@@ -190,4 +207,4 @@ const AddPaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
   );
 };
 
-export default AddPaintingModal;
+export default PaintingModal;

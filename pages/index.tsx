@@ -1,8 +1,7 @@
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import css from '@styled-system/css';
 import { useState } from 'react';
 import Head from 'next/head';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndProvider } from 'react-dnd';
 import { Layout, Menu, Row, Col } from 'antd';
 import Logo from '../components/logo';
 import Series from '../components/my-art-collection/series';
@@ -19,9 +18,7 @@ const Home: React.FC = () => {
         <title>Create Next App</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Layout
-        css={css({ display: 'flex', flexDirection: 'column', height: '100vh' })}
-      >
+      <Layout css="display: flex; flex-direction: column; height: 100vh;">
         <Header>
           <Logo />
           <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['2']}>
@@ -30,20 +27,22 @@ const Home: React.FC = () => {
             <Menu.Item key="3">Gallery</Menu.Item>
           </Menu>
         </Header>
-        <Content css={css({ p: 50, flex: 1 })}>
-          <Row gutter={64}>
-            <Col span={6}>
-              <Series
-                activeSerieId={activeSerieId}
-                onSerieClick={setActiveSerieId}
-              />
-            </Col>
-            <Col span={18}>
-              <Paintings serieId={activeSerieId}></Paintings>
-            </Col>
-          </Row>
+        <Content css="padding: 50px; flex: 1;">
+          <DndProvider backend={HTML5Backend}>
+            <Row gutter={64}>
+              <Col span={6}>
+                <Series
+                  activeSerieId={activeSerieId}
+                  onSerieClick={setActiveSerieId}
+                />
+              </Col>
+              <Col span={18}>
+                <Paintings serieId={activeSerieId}></Paintings>
+              </Col>
+            </Row>
+          </DndProvider>
         </Content>
-        <Footer style={{ textAlign: 'center' }}>
+        <Footer css="text-align: center;">
           Copyright ©2020 Powered by <b>GreenRoadLabs.com</b>. All rights
           reserved
         </Footer>

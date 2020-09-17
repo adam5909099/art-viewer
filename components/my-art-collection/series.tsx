@@ -1,13 +1,11 @@
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import css from '@styled-system/css';
 import { Menu, Card, Button } from 'antd';
-import { PlusOutlined, DeleteFilled } from '@ant-design/icons';
-import AddSerieModal from './add-serie-modal';
+import { PlusOutlined } from '@ant-design/icons';
+import SerieModal from './serie-modal';
 import { useState, useEffect } from 'react';
 import request from '../../utils/request';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { Serie } from '../../interfaces/serie';
+import SerieItem from './serie-item';
 
 interface Props {
   activeSerieId: string;
@@ -15,21 +13,21 @@ interface Props {
 }
 
 const series: React.FC<Props> = ({ activeSerieId, onSerieClick }) => {
-  const { data: series, mutate } = useSWR<Serie[]>('/series');
-  const [addSerieVisible, setAddSerieVisible] = useState(false);
+  const { data: series, mutate: mutateSeries } = useSWR<Serie[]>('/series');
+  const [serieModalVisible, setSerieModalVisible] = useState(false);
 
-  const handleDeleteClick = async (serie) => {
+  const handleDelete = async (serie) => {
     await request.delete(`/series/${serie._id}`);
     if (serie._id === activeSerieId) {
       onSerieClick(series.find((serie) => serie._id !== activeSerieId)?._id);
     }
-    mutate();
+    mutateSeries();
   };
 
-  const handleAddSerieOk = async (values) => {
+  const handleSerieModalOk = async (values) => {
     await request.post('/series', values);
-    mutate();
-    setAddSerieVisible(false);
+    mutateSeries();
+    setSerieModalVisible(false);
   };
 
   useEffect(() => {
@@ -42,48 +40,45 @@ const series: React.FC<Props> = ({ activeSerieId, onSerieClick }) => {
     <Card
       title="Series"
       bordered={false}
-      css={css({ '.ant-card-body': { px: 0 } })}
+      css={`
+        .ant-card-body {
+          padding-left: 0;
+          padding-right: 0;
+        }
+      `}
     >
       <Menu
         mode="inline"
         selectedKeys={[activeSerieId]}
         onClick={(e) => onSerieClick(e.key as string)}
       >
-        {(series ?? []).map((serie) => (
-          <Menu.Item
-            key={serie._id}
-            css={css({
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            })}
-          >
-            {serie.name}
-            <DeleteFilled
-              css={css({ color: 'rgba(0, 0, 0, 0.45)' })}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteClick(serie);
+        {series?.map((serie) => (
+          <Menu.Item key={serie._id}>
+            <SerieItem
+              serie={serie}
+              onDelete={() => handleDelete(serie)}
+              paintingDropped={() => {
+                mutate(`/series/${activeSerieId}/paintings`);
               }}
-            />
+            ></SerieItem>
           </Menu.Item>
         ))}
       </Menu>
-      <div css={css({ m: 16 })}>
+      <div css="margin: 16px;">
         <Button
           type="primary"
           shape="round"
           block
           icon={<PlusOutlined />}
-          onClick={() => setAddSerieVisible(true)}
+          onClick={() => setSerieModalVisible(true)}
         >
           Add New Serie
         </Button>
       </div>
-      <AddSerieModal
-        visible={addSerieVisible}
-        onOk={handleAddSerieOk}
-        onCancel={() => setAddSerieVisible(false)}
+      <SerieModal
+        visible={serieModalVisible}
+        onOk={handleSerieModalOk}
+        onCancel={() => setSerieModalVisible(false)}
       />
     </Card>
   );

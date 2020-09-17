@@ -1,16 +1,14 @@
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import css from '@styled-system/css';
 import PaintingCard from './painting-card';
 import AddPaintingCard from './add-painting-card';
 import { useState } from 'react';
 import { Typography, Row, Col, Button } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
-import useSWR from 'swr';
-import AddPaintingModal from './add-painting-modal';
+import useSWR, { mutate } from 'swr';
+import PaintingModal from './painting-modal';
 import request from '../../utils/request';
 import { Painting } from '../../interfaces/paintings';
 import { Serie } from '../../interfaces/serie';
+import SerieModal from './serie-modal';
 
 const { Title } = Typography;
 
@@ -19,41 +17,48 @@ interface Props {
 }
 
 const Paintings: React.FC<Props> = ({ serieId }) => {
-  const { data: serie } = useSWR<Serie>(`/series/${serieId}`);
-  const { data: paintings, mutate } = useSWR<Painting[]>(
+  const { data: serie, mutate: mutateSerie } = useSWR<Serie>(
+    `/series/${serieId}`
+  );
+  const { data: paintings, mutate: mutatePainings } = useSWR<Painting[]>(
     `/series/${serieId}/paintings`
   );
-  const [addPaintingVisible, setAddPaintingVisible] = useState(false);
+  const [paintingModalVisible, setPaintingModalVisible] = useState(false);
+  const [serieModalVisible, setSerieModalVisible] = useState(false);
 
-  const handleAddPaintingOk = async (painting) => {
+  const handlePaintingModalOk = async (painting) => {
     await request.post('/paintings', { ...painting, serieId });
-    mutate();
-    setAddPaintingVisible(false);
+    mutatePainings();
+    setPaintingModalVisible(false);
+  };
+
+  const handleSerieModalOk = async (serie) => {
+    await request.put(`/series/${serieId}`, serie);
+    mutateSerie();
+    mutate('/series');
+    setSerieModalVisible(false);
   };
 
   const handlePaintingDelete = async (painting) => {
     await request.delete(`/paintings/${painting._id}`, painting);
-    mutate();
+    mutatePainings();
   };
-
-  if (!serie || !paintings) {
-    return null;
-  }
 
   return (
     <>
-      <Title css={css({ display: 'flex', alignItems: 'center' })}>
-        {serie.name}
+      <Title css="display: flex; align-items: center">
+        {serie?.name}
         <Button
-          type="dashed"
-          shape="circle-outline"
+          type="primary"
+          shape="circle"
           icon={<EditOutlined />}
-          css={css({ ml: 3 })}
+          css="margin-left: 16px;"
+          onClick={() => setSerieModalVisible(true)}
         ></Button>
       </Title>
       <Row gutter={32}>
-        {paintings.map((painting, index) => (
-          <Col span={8} key={index} css={css({ mb: 32 })}>
+        {paintings?.map((painting, index) => (
+          <Col span={8} key={index} css="margin-bottom: 32px;">
             <PaintingCard
               painting={painting}
               onDeleteClick={() => {
@@ -62,15 +67,21 @@ const Paintings: React.FC<Props> = ({ serieId }) => {
             />
           </Col>
         ))}
-        <Col span={8} css={css({ mb: 32 })}>
-          <AddPaintingCard onClick={() => setAddPaintingVisible(true)} />
+        <Col span={8} css="margin-bottom: 32px;">
+          <AddPaintingCard onClick={() => setPaintingModalVisible(true)} />
         </Col>
       </Row>
-      <AddPaintingModal
-        visible={addPaintingVisible}
-        onOk={handleAddPaintingOk}
-        onCancel={() => setAddPaintingVisible(false)}
+      <PaintingModal
+        visible={paintingModalVisible}
+        onOk={handlePaintingModalOk}
+        onCancel={() => setPaintingModalVisible(false)}
       />
+      <SerieModal
+        values={serie}
+        visible={serieModalVisible}
+        onOk={handleSerieModalOk}
+        onCancel={() => setSerieModalVisible(false)}
+      ></SerieModal>
     </>
   );
 };

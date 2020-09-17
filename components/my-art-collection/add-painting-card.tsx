@@ -1,6 +1,3 @@
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import css from '@styled-system/css';
 import { Card, Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
@@ -11,19 +8,25 @@ interface Props {
 const AddPaintingCard: React.FC<Props> = ({ onClick }) => {
   return (
     <Card
-      css={css({
-        height: '100%',
-        '.ant-card-body': { height: '100%' },
-      })}
+      css={`
+        height: 100%;
+        .ant-card-body {
+          height: 100%;
+        }
+      `}
     >
       <Button
-        icon={<PlusOutlined css={css({ fontSize: 128 })} />}
-        css={css({
-          width: '100%',
-          height: '100%',
-          py: 15,
-          span: { display: 'block' },
-        })}
+        icon={<PlusOutlined css="font-size: 128px" />}
+        css={`
+          width: 100%;
+          height: 100%;
+          padding-top: 15px;
+          padding-bottom: 15px;
+          span {
+            display: block;
+            margin-bottom: 5px;
+          }
+        `}
         onClick={onClick}
       >
         Add Painting

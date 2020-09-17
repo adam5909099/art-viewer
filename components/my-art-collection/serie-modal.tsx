@@ -4,41 +4,41 @@ import { Serie } from '../../interfaces/serie';
 
 interface Props {
   visible: boolean;
+  values?: Serie;
   onOk: (serie: Serie) => void;
   onCancel: () => void;
 }
 
-const AddSerieModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
+const SerieModal: React.FC<Props> = ({ visible, values, onOk, onCancel }) => {
   const [form] = Form.useForm();
 
   useEffect(() => {
     if (!visible) return;
 
-    form.resetFields();
+    if (values) {
+      form.setFieldsValue(values);
+    } else {
+      form.resetFields();
+    }
   }, [visible]);
 
   return (
     <Modal
-      title="Add New Serie"
+      title={values ? 'Edit Serie' : 'Add New Serie'}
       visible={visible}
       onCancel={onCancel}
-      footer={[
+      footer={
         <Button
-          form="addSerieForm"
           type="primary"
-          key="submit"
-          htmlType="submit"
+          onClick={() => {
+            form.submit();
+          }}
         >
           Done
-        </Button>,
-      ]}
+        </Button>
+      }
     >
-      <Form
-        id="addSerieForm"
-        form={form}
-        layout="vertical"
-        onFinish={(values) => onOk(values)}
-      >
+      <Form form={form} layout="vertical" onFinish={(values) => onOk(values)}>
         <Form.Item
           name="name"
           label="Name"
@@ -56,4 +56,4 @@ const AddSerieModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
   );
 };
 
-export default AddSerieModal;
+export default SerieModal;

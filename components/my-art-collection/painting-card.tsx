@@ -1,5 +1,5 @@
 import { Card } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined } from '@ant-design/icons';
 import { Typography, Image, Button } from 'antd';
 import moment from 'moment';
 import { Painting } from '../../interfaces/paintings';
@@ -9,10 +9,10 @@ const { Title, Text } = Typography;
 
 interface Props {
   painting: Painting;
-  onDeleteClick: () => void;
+  onEditClick: () => void;
 }
 
-const PaintingCard: React.FC<Props> = ({ painting, onDeleteClick }) => {
+const PaintingCard: React.FC<Props> = ({ painting, onEditClick }) => {
   const [{ isDragging }, drag] = useDrag({
     item: { type: 'PAINTING', painting },
     collect: (monitor) => ({
@@ -33,10 +33,9 @@ const PaintingCard: React.FC<Props> = ({ painting, onDeleteClick }) => {
       >
         <Button
           type="primary"
-          danger
           shape="circle"
-          icon={<DeleteOutlined />}
-          onClick={onDeleteClick}
+          icon={<EditOutlined />}
+          onClick={onEditClick}
           css="position: absolute; z-index: 1; top: 16px; right: 16px;"
         ></Button>
         <Image src={painting.filePath} height={200} width="100%"></Image>

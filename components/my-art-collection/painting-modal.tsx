@@ -13,14 +13,23 @@ import { useState, useEffect } from 'react';
 import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import { Painting } from '../../interfaces/paintings';
 import { baseURL } from '../../utils/request';
+import moment from 'moment';
 
 interface Props {
   visible: boolean;
+  values?: Painting;
   onOk: (values: Painting) => void;
+  onDelete: (values: Painting) => void;
   onCancel: () => void;
 }
 
-const PaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
+const PaintingModal: React.FC<Props> = ({
+  visible,
+  values,
+  onOk,
+  onDelete,
+  onCancel,
+}) => {
   const [form] = Form.useForm<Painting>();
   const [filePath, setFilePath] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -31,6 +40,8 @@ const PaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
       return false;
     }
 
+    setFilePath('');
+
     return true;
   };
 
@@ -40,25 +51,52 @@ const PaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
     } else if (info.file.status === 'done') {
       setLoading(false);
       setFilePath(info.file.response.filePath);
-
-      const img = new Image();
-      img.onload = function () {
-        form.setFieldsValue({
-          ...form.getFieldsValue(),
-          sizeWidth: img.width,
-          sizeHeight: img.height,
-        });
-      };
-      img.src = info.file.response.filePath;
     }
   };
 
   useEffect(() => {
     if (!visible) return;
+
+    if (values) {
+      form.setFieldsValue({
+        ...values,
+        creationDate: moment(values.creationDate),
+      });
+      setFilePath(values.filePath);
+    } else {
+      setFilePath('');
+      form.resetFields();
+    }
+
     setLoading(false);
-    setFilePath('');
-    form.resetFields();
   }, [visible]);
+
+  const modalFooter = [
+    <Button
+      key="done"
+      type="primary"
+      onClick={() => {
+        form.submit();
+      }}
+    >
+      Done
+    </Button>,
+  ];
+
+  if (values) {
+    modalFooter.unshift(
+      <Button
+        danger
+        key="delete"
+        type="primary"
+        onClick={() => {
+          onDelete(values);
+        }}
+      >
+        Delete
+      </Button>
+    );
+  }
 
   return (
     <Modal
@@ -66,23 +104,14 @@ const PaintingModal: React.FC<Props> = ({ visible, onOk, onCancel }) => {
       visible={visible}
       onCancel={onCancel}
       width={800}
-      footer={
-        <Button
-          type="primary"
-          onClick={() => {
-            form.submit();
-          }}
-        >
-          Done
-        </Button>
-      }
+      footer={modalFooter}
     >
       <Form
         form={form}
         layout="vertical"
         onFinish={(values) => {
           if (!filePath) {
-            message.error('Please select image file!');
+            message.error('Please select painting file!');
             return;
           }
 

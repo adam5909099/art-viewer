@@ -6,6 +6,7 @@ import request from '../../utils/request';
 import useSWR, { mutate } from 'swr';
 import { Serie } from '../../interfaces/serie';
 import SerieItem from './serie-item';
+import { useWindowWidth } from '@react-hook/window-size';
 
 interface Props {
   activeSerieId: string;
@@ -14,6 +15,7 @@ interface Props {
 
 const series: React.FC<Props> = ({ activeSerieId, onSerieClick }) => {
   const { data: series, mutate: mutateSeries } = useSWR<Serie[]>('/series');
+  const width = useWindowWidth();
   const [serieModalVisible, setSerieModalVisible] = useState(false);
 
   const handleDelete = async (serie) => {
@@ -36,6 +38,10 @@ const series: React.FC<Props> = ({ activeSerieId, onSerieClick }) => {
     }
   }, [series]);
 
+  if (width < 640) {
+    return null;
+  }
+
   return (
     <Card
       title="Series"
@@ -57,7 +63,7 @@ const series: React.FC<Props> = ({ activeSerieId, onSerieClick }) => {
             <SerieItem
               serie={serie}
               onDelete={() => handleDelete(serie)}
-              paintingDropped={() => {
+              onPaintingDrop={() => {
                 mutate(`/series/${activeSerieId}/paintings`);
               }}
             ></SerieItem>

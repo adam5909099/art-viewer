@@ -25,9 +25,14 @@ const Paintings: React.FC<Props> = ({ serieId }) => {
   );
   const [paintingModalVisible, setPaintingModalVisible] = useState(false);
   const [serieModalVisible, setSerieModalVisible] = useState(false);
+  const [editingPainting, setEditingPainting] = useState<Painting>(null);
 
   const handlePaintingModalOk = async (painting) => {
-    await request.post('/paintings', { ...painting, serieId });
+    if (editingPainting) {
+      await request.put(`/paintings/${editingPainting._id}`, painting);
+    } else {
+      await request.post('/paintings', { ...painting, serieId });
+    }
     mutatePainings();
     setPaintingModalVisible(false);
   };
@@ -42,6 +47,8 @@ const Paintings: React.FC<Props> = ({ serieId }) => {
   const handlePaintingDelete = async (painting) => {
     await request.delete(`/paintings/${painting._id}`, painting);
     mutatePainings();
+    setSerieModalVisible(false);
+    setPaintingModalVisible(false);
   };
 
   return (
@@ -61,19 +68,29 @@ const Paintings: React.FC<Props> = ({ serieId }) => {
           <Col span={8} key={index} css="margin-bottom: 32px;">
             <PaintingCard
               painting={painting}
-              onDeleteClick={() => {
-                handlePaintingDelete(painting);
+              onEditClick={() => {
+                setEditingPainting(painting);
+                setPaintingModalVisible(true);
               }}
             />
           </Col>
         ))}
         <Col span={8} css="margin-bottom: 32px;">
-          <AddPaintingCard onClick={() => setPaintingModalVisible(true)} />
+          <AddPaintingCard
+            onClick={() => {
+              setEditingPainting(null);
+              setPaintingModalVisible(true);
+            }}
+          />
         </Col>
       </Row>
       <PaintingModal
+        values={editingPainting}
         visible={paintingModalVisible}
         onOk={handlePaintingModalOk}
+        onDelete={(painting) => {
+          handlePaintingDelete(painting);
+        }}
         onCancel={() => setPaintingModalVisible(false)}
       />
       <SerieModal

@@ -10,6 +10,7 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
+    "@react-hook/window-size": "^3.0.7",
     "@types/styled-components": "^5.1.3",
     "antd": "^4.6.4",
     "axios": "^0.20.0",

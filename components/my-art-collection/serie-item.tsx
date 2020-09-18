@@ -1,27 +1,33 @@
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 import { Serie } from '../../interfaces/serie';
 import { DeleteOutlined } from '@ant-design/icons';
 import { useDrop } from 'react-dnd';
 import request from '../../utils/request';
+import { Painting } from '../../interfaces/paintings';
 
 interface Props {
   serie: Serie;
   onDelete: () => void;
-  paintingDropped: () => void;
+  onPaintingDrop: () => void;
 }
 
-const SerieItem: React.FC<Props> = ({ serie, onDelete, paintingDropped }) => {
-  const [{ isOver }, drop] = useDrop({
-    accept: 'PAINTING',
-    async drop(data) {
-      await request.put(`/paintings/${data.painting._id}`, {
-        serieId: serie._id,
-      });
-      paintingDropped();
+const SerieItem: React.FC<Props> = ({ serie, onDelete, onPaintingDrop }) => {
+  const [, drop] = useDrop<
+    {
+      type: string;
+      painting: Painting;
     },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
+    void,
+    void
+  >({
+    accept: 'PAINTING',
+    async drop({ painting }) {
+      await request.put(`/paintings/${painting._id}`, {
+        serie: serie._id,
+      });
+      onPaintingDrop();
+      message.success(`${painting.name} moved into ${serie.name}`);
+    },
   });
 
   return (
